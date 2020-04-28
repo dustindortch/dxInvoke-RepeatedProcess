@@ -1,4 +1,4 @@
-$ModuleManifestName = 'Invoke-RepeatedProcess.psd1'
+$ModuleManifestName = 'dxInvoke-RepeatedProcess.psd1'
 $ModuleManifestPath = "$PSScriptRoot\..\$ModuleManifestName"
 
 Describe 'Module Manifest Tests' {
@@ -8,7 +8,7 @@ Describe 'Module Manifest Tests' {
     }
 
     It "Outputs 'Hello, world!'" {
-        Invoke-RepeatedProcess -ScriptBlock {Write-Output "Hello, world!"} -RunOnce | Should Be "Hello, world!"
+        Invoke-RepeatedProcess -Milliseconds 2000 -ScriptBlock {Write-Output "Hello, world!"} -RunOnce | Should Be "Hello, world!"
     }
 }
 
