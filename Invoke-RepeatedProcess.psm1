@@ -1,59 +1,44 @@
-# Implement your module commands in this script.
-
 function Invoke-RepeatedProcess {
-    <#
-    .SYNOPSIS
-        Executes a given process repeatedly at a specified time interval
-    .DESCRIPTION
-        Executes a given process repeatedly at a specified time interval
-    .EXAMPLE
-        Invoke-RepeatedProcess -EveryXMinutes 5 -ScriptBlock {Write-Output "Hello, world!"} -Verbose
-    .INPUTS
-        EveryXMinutes
-    .INPUTS
-        ScriptBlock
-    #>
-
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Milliseconds')]
     [Alias("Repeat")]
-    Param
-    (
-        [Parameter(Mandatory,
-            ValueFromPipeline)]
+    param (
+        [Parameter(Mandatory, ValueFromPipeline)]
         [ValidateNotNull()]
         [Alias("C")]
         [scriptblock]$ScriptBlock,
 
-        [Parameter(Mandatory=$False)]
-        [int]$EveryXMinutes=5,
+        [Parameter(Mandatory, ParameterSetName='Minutes')]
+        [int]$Minutes,
 
-        [Parameter(Mandatory=$False)]
+        [Parameter(Mandatory, ParameterSetName='Seconds')]
+        [int]$Seconds,
+
+        [Parameter(Mandatory, ParameterSetName='Milliseconds')]
+        [int]$Milliseconds,
+
         [Switch]$RunOnce
     )
 
-    Begin
-    {
-    }
-    Process
-    {
-        $HasRan = $False
-        :mainLoop While($True) {
-            & $ScriptBlock
-            Write-Verbose (Get-Date)
-            If($RunOnce) {
-                Write-Verbose "RunOnce: True"
-            }
-            $HasRan = $True
-            If($HasRan -and $RunOnce) {
-                Break mainLoop
-            }
-            $Seconds = 60 * $EveryXMinutes
-            Write-Verbose "Sleeping for $Seconds"
-            Start-Sleep -s $Seconds
+    BEGIN {
+        Write-Verbose $PSCmdlet.ParameterSetName
+
+        switch ($PSCmdlet.ParameterSetName) {
+            'Minutes' {$Seconds = $Minutes * 60}
+            {$PSItem -ne 'Milliseconds'} {$Milliseconds = $Seconds * 1000}
         }
     }
-    End
-    {
+
+    PROCESS {
+        :mainLoop do {
+            & $ScriptBlock
+            Write-Verbose (Get-Date)
+            if ($RunOnce) {
+                Write-Verbose 'RunOnce'
+                Break mainLoop
+            }
+            Write-Verbose "Sleeping for $Milliseconds milliseconds"
+            Start-Sleep -Milliseconds $Milliseconds
+        } while ($True)
     }
 }
 
